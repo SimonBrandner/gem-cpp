@@ -1,0 +1,11 @@
+BasedOnStyle: LLVM
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
+AllowAllParametersOfDeclarationOnNextLine: true
+# AllowAllArgumentsOnNextLine: false
+# BreakBeforeFunctionCallArguments: true
+AlignAfterOpenBracket: BlockIndent
+BinPackParameters: false
+BinPackArguments: false
+AccessModifierOffset: 0
