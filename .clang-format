@@ -3,8 +3,7 @@ UseTab: Always
 IndentWidth: 4
 TabWidth: 4
 AllowAllParametersOfDeclarationOnNextLine: true
-# AllowAllArgumentsOnNextLine: false
-# BreakBeforeFunctionCallArguments: true
+AllowAllArgumentsOnNextLine: true
 AlignAfterOpenBracket: BlockIndent
 BinPackParameters: false
 BinPackArguments: false
