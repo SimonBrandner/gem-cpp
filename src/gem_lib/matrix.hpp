@@ -19,10 +19,6 @@ template <typename T> class Matrix {
 	size_t number_of_columns;
 	std::vector<T> data;
 
-	T &at(size_t row, size_t column) {
-		return this->data[row * this->number_of_columns + column];
-	}
-
 	public:
 	// This is necessary due to the stupidity of C++ which instead of requiring
 	// us to define values for all members in the SystemOfEquations constructor

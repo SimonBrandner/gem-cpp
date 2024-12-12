@@ -175,7 +175,8 @@ template <typename T> class SystemOfEquations {
 	}
 
 	T &at(size_t row, size_t column) {
-		return this->augmented_matrix.at(this->row_order[row], column);
+		return this->augmented_matrix
+			.data[row * this->get_number_of_columns() + column];
 	}
 
 	public:
