@@ -154,10 +154,26 @@ template <typename T> const double abs(const Matrix<T> &matrix) {
 
 template <typename T>
 std::ostream &operator<<(std::ostream &stream, const Matrix<T> &matrix) {
+	std::vector<size_t> column_sizes(matrix.get_number_of_columns());
 	for (size_t row = 0; row < matrix.get_number_of_rows(); ++row) {
 		for (size_t column = 0; column < matrix.get_number_of_columns();
 			 ++column) {
-			stream << matrix.at(row, column);
+			auto value_string_size =
+				std::to_string(matrix.at(row, column)).size();
+			if (value_string_size > column_sizes[column]) {
+				column_sizes[column] = value_string_size;
+			}
+		}
+	}
+
+	for (size_t row = 0; row < matrix.get_number_of_rows(); ++row) {
+		for (size_t column = 0; column < matrix.get_number_of_columns();
+			 ++column) {
+			auto value_string = std::to_string(matrix.at(row, column));
+			stream << std::string(
+				" ", column_sizes[column] - value_string.size()
+			);
+			stream << value_string;
 
 			if (column != matrix.get_number_of_columns() - 1) {
 				stream << " ";

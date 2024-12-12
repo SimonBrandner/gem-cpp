@@ -6,12 +6,18 @@
 #include <optional>
 #include <ostream>
 #include <stdexcept>
-#include <string>
 
 #ifndef SYSTEM_OF_EQUATIONS_H
 #define SYSTEM_OF_EQUATIONS_H
 
 template <typename T> class SystemOfEquations {
+	friend std::ostream &operator<<(
+		std::ostream &stream, const SystemOfEquations<T> &system_of_equations
+	) {
+		stream << system_of_equations.augmented_matrix;
+		return stream;
+	}
+
 	private:
 	size_t map_number_of_columns;
 	size_t right_side_number_of_columns;
@@ -226,53 +232,5 @@ template <typename T> class SystemOfEquations {
 		return this->result.value();
 	}
 };
-
-template <typename T>
-std::ostream &operator<<(
-	std::ostream &stream, const SystemOfEquations<T> &system_of_equations
-) {
-	std::vector<size_t> column_sizes(system_of_equations.get_number_of_columns()
-	);
-	for (size_t row = 0; row < system_of_equations.get_number_of_rows();
-		 ++row) {
-		for (size_t column = 0;
-			 column < system_of_equations.get_number_of_columns();
-			 ++column) {
-			auto value_string_size =
-				std::to_string(system_of_equations.at(row, column)).size();
-			if (value_string_size > column_sizes[column]) {
-				column_sizes[column] = value_string_size;
-			}
-		}
-	}
-
-	for (size_t row = 0; row < system_of_equations.get_number_of_rows();
-		 ++row) {
-		for (size_t column = 0;
-			 column < system_of_equations.get_number_of_columns();
-			 ++column) {
-			auto value_string =
-				std::to_string(system_of_equations.at(row, column));
-			stream << std::string(
-				" ", (column_sizes[column] - value_string.size())
-			);
-			stream << value_string;
-
-			if (column != system_of_equations.get_number_of_columns() - 1) {
-				if (column ==
-					system_of_equations.get_map_number_of_columns() - 1) {
-					stream << " | ";
-				} else {
-					stream << " ";
-				}
-			}
-		}
-		if (row != system_of_equations.get_number_of_rows() - 1) {
-			stream << std::endl;
-		}
-	}
-
-	return stream;
-}
 
 #endif
