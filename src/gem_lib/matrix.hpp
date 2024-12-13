@@ -19,7 +19,9 @@ template <typename T> class Matrix {
 	solve_system_of_equations<T>(Matrix<T> map, Matrix<T> right_side);
 
 	private:
-	EliminableMatrix<T> get_eliminable() { return EliminableMatrix<T>(*this); }
+	EliminableMatrix<T> get_eliminable() const {
+		return EliminableMatrix<T>(*this);
+	}
 
 	Matrix<T> right_join(const Matrix<T> &rhs) const {
 		if (this->number_of_rows != rhs.get_number_of_rows()) {
@@ -91,6 +93,25 @@ template <typename T> class Matrix {
 
 	const size_t get_number_of_columns() const {
 		return this->number_of_columns;
+	}
+
+	const double get_determinant() const {
+		if (this->number_of_rows != this->number_of_columns) {
+			throw std::runtime_error(
+				"Cannot compute determinant of a non-square matrix!"
+			);
+		}
+
+		EliminableMatrix<T> eliminable_matrix = this->get_eliminable();
+		eliminable_matrix.perform_gem();
+
+		double determinant = 1;
+		for (size_t position = 0;
+			 position < eliminable_matrix.get_number_of_rows();
+			 ++position) {
+			determinant *= this->at(position, position);
+		}
+		return determinant;
 	}
 
 	const T &at(size_t row, size_t column) const {
