@@ -27,10 +27,10 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 		this->row_order[row_b_index] = tmp;
 	}
 
-	void add_row_multiple(size_t from_index, size_t to_index, T multiplicator) {
+	void add_row_multiple(size_t source, size_t target, T multiplicator) {
 		for (size_t i = 0; i < this->number_of_columns; ++i) {
-			this->at(to_index, i) =
-				this->at(to_index, i) + multiplicator * this->at(from_index, i);
+			this->at(target, i) =
+				this->at(target, i) + multiplicator * this->at(source, i);
 		}
 	}
 
@@ -38,6 +38,12 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 		for (size_t i = 0; i < this->number_of_columns; ++i) {
 			this->at(row, i) *= multiplicator;
 		}
+	}
+
+	void eliminate_row(size_t row, size_t by, size_t column) {
+		this->add_row_multiple(
+			by, row, -this->at(row, column) / this->at(by, column)
+		);
 	}
 
 	void pivot(size_t column) {
@@ -81,23 +87,13 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 				indices.begin(),
 				indices.end(),
 				[this, column](size_t row) {
-					this->add_row_multiple(
-						column,
-						row,
-						-this->at(row, column) / this->at(column, column)
-					);
+					this->eliminate_row(row, column, column);
 				}
 			);
 
 			/*for (size_t row = column + 1; row < this->map_number_of_columns;*/
 			/*	 ++row) {*/
-			/*	if (this->at(column, column) != 0) {*/
-			/*		this->add_row_multiple(*/
-			/*			column,*/
-			/*			row,*/
-			/*			-this->at(row, column) / this->at(column, column)*/
-			/*		);*/
-			/*	}*/
+			/*	this->eliminate_row(row, column, column);*/
 			/*}*/
 		}
 	}
@@ -115,23 +111,13 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 				indices.begin(),
 				indices.end(),
 				[this, row](size_t row_to_eliminate) {
-					this->add_row_multiple(
-						row,
-						row_to_eliminate,
-						-this->at(row_to_eliminate, row) / this->at(row, row)
-					);
+					this->eliminate_row(row_to_eliminate, row, row);
 				}
 			);
 
 			/*for (size_t row_to_eliminate = 0; row_to_eliminate < row;*/
 			/*	 ++row_to_eliminate) {*/
-			/*	if (this->at(row, row) != 0) {*/
-			/*		this->add_row_multiple(*/
-			/*			row,*/
-			/*			row_to_eliminate,*/
-			/*			-this->at(row_to_eliminate, row) / this->at(row, row)*/
-			/*		);*/
-			/*	}*/
+			/*	this->eliminate_row(row_to_eliminate, row, row);*/
 			/*}*/
 		}
 	}
