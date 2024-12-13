@@ -1,11 +1,18 @@
 #include "eliminable_matrix.hpp"
 #include "matrix.hpp"
+#include <stdexcept>
 
 #ifndef SYSTEM_OF_EQUATIONS_H
 #define SYSTEM_OF_EQUATIONS_H
 
 template <typename T>
 Matrix<T> solve_system_of_equations(Matrix<T> map, Matrix<T> right_side) {
+	if (map.get_number_of_rows() != map.get_number_of_columns()) {
+		throw std::runtime_error(
+			"Cannot solve a system of equations with a non-square matrix!"
+		);
+	}
+
 	EliminableMatrix<T> eliminable_matrix =
 		map.right_join(right_side).get_eliminable();
 
