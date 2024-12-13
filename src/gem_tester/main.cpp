@@ -30,9 +30,7 @@ Matrix<FLOAT_TYPE> random_matrix(
 void test(Matrix<FLOAT_TYPE> map, Matrix<FLOAT_TYPE> expected_solution) {
 	auto expected_right_side = map * expected_solution;
 
-	SystemOfEquations<FLOAT_TYPE> system =
-		SystemOfEquations<FLOAT_TYPE>(map, expected_right_side);
-	auto solution = system.solve();
+	auto solution = solve_system_of_equations(map, expected_right_side);
 
 	auto right_side = map * solution;
 	auto difference = expected_right_side - right_side;

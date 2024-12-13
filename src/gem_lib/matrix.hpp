@@ -8,50 +8,20 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-template <typename T> class SystemOfEquations;
+template <typename T> class Matrix;
+template <typename T> class EliminableMatrix;
+
+template <typename T>
+Matrix<T> solve_system_of_equations(Matrix<T> map, Matrix<T> right_side);
 
 template <typename T> class Matrix {
-	// So that it can manipulate the content of the augmented matrix.
-	friend SystemOfEquations<T>;
+	friend Matrix<T>
+	solve_system_of_equations<T>(Matrix<T> map, Matrix<T> right_side);
 
 	private:
-	size_t number_of_rows;
-	size_t number_of_columns;
-	std::vector<T> data;
+	EliminableMatrix<T> get_eliminable() { return EliminableMatrix<T>(*this); }
 
-	public:
-	// This is necessary due to the stupidity of C++ which instead of requiring
-	// us to define values for all members in the SystemOfEquations constructor
-	// requires us to put things which do not have a default constructor in the
-	// initializer list which we do not want to do. Rust would work much better
-	// here.
-	Matrix() = default;
-
-	Matrix(
-		std::vector<T> data, size_t number_of_rows, size_t number_of_columns
-	) {
-		if (data.size() != (number_of_rows * number_of_columns)) {
-			throw std::runtime_error("The supplied data has the wrong size");
-		}
-
-		// We could use a member initializer list here but I find this a little
-		// better since it's a bit more explicit
-		this->data = data;
-		this->number_of_rows = number_of_rows;
-		this->number_of_columns = number_of_columns;
-	}
-
-	const size_t get_number_of_rows() const { return this->number_of_rows; }
-
-	const size_t get_number_of_columns() const {
-		return this->number_of_columns;
-	}
-
-	const T &at(size_t row, size_t column) const {
-		return this->data[row * this->number_of_columns + column];
-	}
-
-	const Matrix<T> right_join(const Matrix<T> &rhs) const {
+	Matrix<T> right_join(const Matrix<T> &rhs) const {
 		if (this->number_of_rows != rhs.get_number_of_rows()) {
 			throw std::runtime_error("The number of rows does not match!");
 		}
@@ -78,6 +48,53 @@ template <typename T> class Matrix {
 			this->number_of_rows,
 			this->number_of_columns + rhs.get_number_of_columns()
 		);
+	}
+
+	Matrix<T> extract_column_range(size_t start) {
+		return this->extract_column_range(start, this->number_of_columns);
+	}
+
+	Matrix<T> extract_column_range(size_t start, size_t end) {
+		std::vector<T> extracted_data;
+		extracted_data.reserve((end - start) * this->get_number_of_rows());
+
+		for (size_t row = 0; row < this->get_number_of_rows(); ++row) {
+			for (size_t column = start; column < end; ++column) {
+				extracted_data.push_back(this->at(row, column));
+			}
+		}
+
+		return Matrix(extracted_data, this->get_number_of_rows(), end - start);
+	}
+
+	protected:
+	size_t number_of_rows;
+	size_t number_of_columns;
+	std::vector<T> data;
+
+	public:
+	Matrix(
+		std::vector<T> data, size_t number_of_rows, size_t number_of_columns
+	) {
+		if (data.size() != (number_of_rows * number_of_columns)) {
+			throw std::runtime_error("The supplied data has the wrong size");
+		}
+
+		// We could use a member initializer list here but I find this a little
+		// better since it's a bit more explicit
+		this->data = data;
+		this->number_of_rows = number_of_rows;
+		this->number_of_columns = number_of_columns;
+	}
+
+	const size_t get_number_of_rows() const { return this->number_of_rows; }
+
+	const size_t get_number_of_columns() const {
+		return this->number_of_columns;
+	}
+
+	const T &at(size_t row, size_t column) const {
+		return this->data[row * this->number_of_columns + column];
 	}
 
 	const Matrix<T> operator*(const Matrix<T> &rhs) const {
