@@ -45,7 +45,6 @@ void test_solve(Matrix<FLOAT_TYPE> map, Matrix<FLOAT_TYPE> expected_solution) {
 }
 
 void test_system(size_t size) {
-	std::cout << "Random big test" << std::endl;
 	test_solve(
 		random_matrix(size, size, MIN, MAX), random_matrix(size, 1, MIN, MAX)
 	);
