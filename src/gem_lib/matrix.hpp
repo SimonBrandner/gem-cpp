@@ -1,3 +1,5 @@
+#include "./permutations.hpp"
+
 #include <cmath>
 #include <iostream>
 #include <ostream>
@@ -7,6 +9,12 @@
 
 #ifndef MATRIX_H
 #define MATRIX_H
+
+enum class DeterminantMethod {
+	Elimination,
+	ParallelElimination,
+	Definition,
+};
 
 template <typename T> class Matrix;
 template <typename T> class EliminableMatrix;
@@ -97,23 +105,52 @@ template <typename T> class Matrix {
 		return this->number_of_columns;
 	}
 
+	const double get_diagonal_product() const {
+		double product = 1;
+		for (size_t position = 0; position < this->get_number_of_rows();
+			 ++position) {
+			product *= this->at(position, position);
+		}
+		return product;
+	}
+
 	const double get_determinant() const {
+		this->get_determinant(DeterminantMethod::ParallelElimination);
+	}
+
+	const double get_determinant(DeterminantMethod method) const {
 		if (this->number_of_rows != this->number_of_columns) {
 			throw std::runtime_error(
 				"Cannot compute determinant of a non-square matrix!"
 			);
 		}
 
-		EliminableMatrix<T> eliminable_matrix = this->get_eliminable();
-		eliminable_matrix.perform_gem();
+		switch (method) {
+		case DeterminantMethod::Definition: {
+			std::vector<std::pair<std::vector<size_t>, int>> permutations =
+				generate_permutations(this->number_of_rows);
 
-		double determinant = 1;
-		for (size_t position = 0;
-			 position < eliminable_matrix.get_number_of_rows();
-			 ++position) {
-			determinant *= this->at(position, position);
+			double determinant = 0;
+			for (auto &permutation : permutations) {
+				double product = permutation.second;
+				for (size_t i = 0; i < this->number_of_rows; ++i) {
+					product *= this->at(i, permutation.first[i]);
+				}
+				determinant += product;
+			}
+			return determinant;
 		}
-		return determinant;
+		case DeterminantMethod::Elimination: {
+			EliminableMatrix<T> eliminable_matrix = this->get_eliminable();
+			eliminable_matrix.perform_gem(false);
+			return eliminable_matrix.get_diagonal_product();
+		}
+		case DeterminantMethod::ParallelElimination: {
+			EliminableMatrix<T> eliminable_matrix = this->get_eliminable();
+			eliminable_matrix.perform_gem(true);
+			return eliminable_matrix.get_diagonal_product();
+		}
+		}
 	}
 
 	const T &at(size_t row, size_t column) const {

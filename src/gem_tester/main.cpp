@@ -59,8 +59,15 @@ void test_matrix_equation(size_t size) {
 
 void test_determinant(size_t size) {
 	auto matrix = random_matrix(size, size, MIN, MAX);
-	std::cout << "Computing determinant for:" << matrix << std::endl;
-	std::cout << "Determinant: " << matrix.get_determinant() << std::endl;
+	std::cout << "Determinant by definition: "
+			  << matrix.get_determinant(DeterminantMethod::Definition)
+			  << std::endl;
+	std::cout << "Determinant by elimination: "
+			  << matrix.get_determinant(DeterminantMethod::Elimination)
+			  << std::endl;
+	std::cout << "Determinant by parallel elimination: "
+			  << matrix.get_determinant(DeterminantMethod::ParallelElimination)
+			  << std::endl;
 }
 
 int main(void) {

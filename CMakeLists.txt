@@ -11,4 +11,5 @@ add_executable(gem_tester
     src/gem_tester/main.cpp
     src/gem_lib/matrix.hpp
     src/gem_lib/system_of_equations.hpp
+    src/gem_lib/permutations.cpp
 )
