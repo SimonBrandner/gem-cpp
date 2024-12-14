@@ -12,11 +12,13 @@ template <typename T> class Matrix;
 template <typename T> class EliminableMatrix;
 
 template <typename T>
-Matrix<T> solve_system_of_equations(Matrix<T> map, Matrix<T> right_side);
+Matrix<T>
+solve_system_of_equations(Matrix<T> map, Matrix<T> right_side, bool parallel);
 
 template <typename T> class Matrix {
-	friend Matrix<T>
-	solve_system_of_equations<T>(Matrix<T> map, Matrix<T> right_side);
+	friend Matrix<T> solve_system_of_equations<T>(
+		Matrix<T> map, Matrix<T> right_side, bool parallel
+	);
 
 	private:
 	EliminableMatrix<T> get_eliminable() const {

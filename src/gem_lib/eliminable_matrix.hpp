@@ -3,9 +3,11 @@
 #include <algorithm>
 #include <cstddef>
 #include <execution>
+#include <functional>
 #include <numeric>
 #include <optional>
 #include <stdexcept>
+#include <thread>
 
 #ifndef ELIMINABLE_MATRIX_H
 #define ELIMINABLE_MATRIX_H
@@ -46,6 +48,46 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 		);
 	}
 
+	void eliminate_rows(
+		size_t by_row, size_t based_on_column, size_t start_row, size_t end_row
+	) {
+		for (size_t row = start_row; row < end_row; ++row) {
+			this->eliminate_row(row, by_row, based_on_column);
+		}
+	}
+
+	void eliminate_rows_in_parallel(
+		size_t by_row, size_t based_on_column, size_t start_row, size_t end_row
+	) {
+		const size_t number_of_rows = end_row - start_row;
+		const size_t number_of_threads = std::thread::hardware_concurrency();
+		const size_t chunk_size = number_of_rows / number_of_threads;
+
+		std::vector<std::thread> threads;
+		threads.reserve(number_of_threads);
+
+		for (size_t thread_index = 0; thread_index < number_of_threads;
+			 ++thread_index) {
+			size_t chunk_start_row = start_row + thread_index * chunk_size;
+			// Make sure we do not walk out out of the matrix
+			size_t chunk_end_row = (thread_index == number_of_threads - 1)
+									   ? end_row
+									   : chunk_start_row + chunk_size;
+			threads.emplace_back(std::bind(
+				&EliminableMatrix<T>::eliminate_rows,
+				this,
+				by_row,
+				based_on_column,
+				chunk_start_row,
+				chunk_end_row
+			));
+		}
+
+		for (auto &thread : threads) {
+			thread.join();
+		}
+	}
+
 	void pivot(size_t column) {
 		std::optional<std::pair<size_t, T>> row_with_highest_value;
 		for (size_t row = column; row < this->number_of_rows; ++row) {
@@ -73,52 +115,36 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 		std::iota(this->row_order.begin(), this->row_order.end(), 0);
 	}
 
-	void perform_gem() {
+	void perform_gem() { this->perform_gem(true); }
+
+	void perform_gem(bool parallel) {
 		for (size_t column = 0; column < this->number_of_rows; ++column) {
 			this->pivot(column);
-			if (this->at(column, column) == 0) {
-				continue;
-			}
-
-			std::vector<size_t> indices(this->number_of_rows - column - 1);
-			std::iota(indices.begin(), indices.end(), column + 1);
-			std::for_each(
-				std::execution::par,
-				indices.begin(),
-				indices.end(),
-				[this, column](size_t row) {
-					this->eliminate_row(row, column, column);
+			if (this->at(column, column) != 0) {
+				if (parallel) {
+					this->eliminate_rows_in_parallel(
+						column, column, column + 1, this->number_of_rows
+					);
+				} else {
+					this->eliminate_rows(
+						column, column, column + 1, this->number_of_rows
+					);
 				}
-			);
-
-			/*for (size_t row = column + 1; row < this->map_number_of_columns;*/
-			/*	 ++row) {*/
-			/*	this->eliminate_row(row, column, column);*/
-			/*}*/
+			}
 		}
 	}
 
-	void perform_jem() {
+	void perform_jem() { this->perform_jem(true); }
+
+	void perform_jem(bool parallel) {
 		for (size_t row = 1; row < this->number_of_rows; ++row) {
-			if (this->at(row, row) == 0) {
-				continue;
-			}
-
-			std::vector<size_t> indices(row);
-			std::iota(indices.begin(), indices.end(), 0);
-			std::for_each(
-				std::execution::par,
-				indices.begin(),
-				indices.end(),
-				[this, row](size_t row_to_eliminate) {
-					this->eliminate_row(row_to_eliminate, row, row);
+			if (this->at(row, row) != 0) {
+				if (parallel) {
+					this->eliminate_rows_in_parallel(row, row, 0, row);
+				} else {
+					this->eliminate_rows(row, row, 0, row);
 				}
-			);
-
-			/*for (size_t row_to_eliminate = 0; row_to_eliminate < row;*/
-			/*	 ++row_to_eliminate) {*/
-			/*	this->eliminate_row(row_to_eliminate, row, row);*/
-			/*}*/
+			}
 		}
 	}
 
