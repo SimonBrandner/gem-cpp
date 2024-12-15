@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include <ostream>
+#include <random>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
@@ -85,6 +86,24 @@ template <typename T> class Matrix {
 	std::vector<T> data;
 
 	public:
+	static Matrix<T> random(size_t size, T min, T max) {
+		return Matrix::random(size, size, min, max);
+	}
+
+	static Matrix<T>
+	random(size_t number_of_rows, size_t number_of_columns, T min, T max) {
+		std::random_device rd;
+		std::mt19937 gen(rd());
+
+		std::vector<T> data(number_of_rows * number_of_columns);
+		for (size_t i = 0; i < data.size(); ++i) {
+			std::uniform_real_distribution<T> dist(min, max);
+			data[i] = dist(gen);
+		}
+
+		return Matrix<T>(data, number_of_rows, number_of_columns);
+	}
+
 	Matrix(
 		std::vector<T> data, size_t number_of_rows, size_t number_of_columns
 	) {

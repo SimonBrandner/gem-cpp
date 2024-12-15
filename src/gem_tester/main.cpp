@@ -2,30 +2,11 @@
 #include "../gem_lib/system_of_equations.hpp"
 
 #include <iostream>
-#include <random>
 
 #define MIN 100
 #define MAX -100
 #define EPSILON 0.01
 #define FLOAT_TYPE double
-
-Matrix<FLOAT_TYPE> random_matrix(
-	size_t number_of_rows,
-	size_t number_of_columns,
-	FLOAT_TYPE min,
-	FLOAT_TYPE max
-) {
-	std::random_device rd;
-	std::mt19937 gen(rd());
-
-	std::vector<FLOAT_TYPE> data(number_of_rows * number_of_columns);
-	for (size_t i = 0; i < data.size(); ++i) {
-		std::uniform_real_distribution<FLOAT_TYPE> dist(min, max);
-		data[i] = dist(gen);
-	}
-
-	return Matrix<FLOAT_TYPE>(data, number_of_rows, number_of_columns);
-}
 
 void test_solve(Matrix<FLOAT_TYPE> map, Matrix<FLOAT_TYPE> expected_solution) {
 	auto expected_right_side = map * expected_solution;
@@ -46,19 +27,21 @@ void test_solve(Matrix<FLOAT_TYPE> map, Matrix<FLOAT_TYPE> expected_solution) {
 
 void test_system(size_t size) {
 	test_solve(
-		random_matrix(size, size, MIN, MAX), random_matrix(size, 1, MIN, MAX)
+		Matrix<FLOAT_TYPE>::random(size, MIN, MAX),
+		Matrix<FLOAT_TYPE>::random(size, 1, MIN, MAX)
 	);
 }
 
 void test_matrix_equation(size_t size) {
 	std::cout << "Random big test matrix equation" << std::endl;
 	test_solve(
-		random_matrix(size, size, MIN, MAX), random_matrix(size, size, MIN, MAX)
+		Matrix<FLOAT_TYPE>::random(size, MIN, MAX),
+		Matrix<FLOAT_TYPE>::random(size, MIN, MAX)
 	);
 }
 
 void test_determinant(size_t size) {
-	auto matrix = random_matrix(size, size, MIN, MAX);
+	auto matrix = Matrix<FLOAT_TYPE>::random(size, MIN, MAX);
 	std::cout << "Determinant by definition: "
 			  << matrix.get_determinant(DeterminantMethod::Definition)
 			  << std::endl;
