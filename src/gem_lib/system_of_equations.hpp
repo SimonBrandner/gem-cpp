@@ -19,7 +19,7 @@ solve_system_of_equations(Matrix<T> map, Matrix<T> right_side, bool parallel) {
 
 	eliminable_matrix.perform_gem(parallel);
 	eliminable_matrix.perform_jem(parallel);
-	eliminable_matrix.normalize_rows_based_on_diagonal();
+	eliminable_matrix.normalize_rows_based_on_diagonal(parallel);
 
 	return eliminable_matrix.extract_column_range(map.get_number_of_columns());
 }

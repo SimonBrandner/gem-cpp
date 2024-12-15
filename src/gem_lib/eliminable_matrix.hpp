@@ -149,19 +149,48 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 	}
 
 	void normalize_rows_based_on_diagonal() {
-		std::vector<size_t> indices(this->number_of_rows);
-		std::iota(indices.begin(), indices.end(), 0);
+		this->normalize_rows_based_on_diagonal();
+	}
 
-		std::for_each(
-			std::execution::par,
-			indices.begin(),
-			indices.end(),
-			[this](size_t row) {
+	void normalize_rows_based_on_diagonal(bool parallel) {
+		if (!parallel) {
+			for (size_t row = 0; row < this->number_of_rows; ++row) {
 				if (this->at(row, row) != 0) {
 					this->multiply_row(row, 1. / this->at(row, row));
 				}
 			}
-		);
+			return;
+		}
+
+		const size_t number_of_threads = std::thread::hardware_concurrency();
+		const size_t chunk_size = this->number_of_rows / number_of_threads;
+
+		std::vector<std::thread> threads;
+		threads.reserve(number_of_threads);
+
+		for (size_t thread_index = 0; thread_index < number_of_threads;
+			 ++thread_index) {
+			size_t start_row = thread_index * chunk_size;
+			// Make sure we do not walk out out of the matrix
+			size_t end_row = (thread_index == number_of_threads - 1)
+								 ? this->number_of_rows
+								 : start_row + chunk_size;
+			threads.emplace_back(
+				[this](size_t start_row, size_t end_row) {
+					for (size_t row = start_row; row < end_row; ++row) {
+						if (this->at(row, row) != 0) {
+							this->multiply_row(row, 1. / this->at(row, row));
+						}
+					}
+				},
+				start_row,
+				end_row
+			);
+		}
+
+		for (auto &thread : threads) {
+			thread.join();
+		}
 	}
 
 	T &at(size_t row, size_t column) {
