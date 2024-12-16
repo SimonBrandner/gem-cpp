@@ -19,7 +19,7 @@ constexpr double MIN = 100;
 constexpr double MAX = -100;
 constexpr char NOT_ENOUGH_ARGS[] = "Not enough arguments!";
 
-enum class Command { Generate, Solve, Complexity, Determinant };
+enum class Command { Generate, Solve, Invert, Complexity, Determinant };
 enum class ComplexityTask { SystemOfEquations, MatrixEquation, Determinant };
 enum class SystemMethod { Parallel, Sequential };
 enum class MatrixType { Random, Identity, Ones, Hilbert };
@@ -28,6 +28,7 @@ Command string_to_command(const std::string &string_command) {
 	static const std::unordered_map<std::string, Command> command_map = {
 		{"generate", Command::Generate},
 		{"solve", Command::Solve},
+		{"invert", Command::Invert},
 		{"determinant", Command::Determinant},
 		{"complexity", Command::Complexity}
 	};
@@ -233,6 +234,21 @@ int main(int argc, char *argv[]) {
 		auto map = Matrix<FLOAT_TYPE>::from_file(map_file_path);
 		auto right_side = Matrix<FLOAT_TYPE>::from_file(right_side_file_path);
 		auto solution = solve_system_of_equations(map, right_side, parallel);
+		solution.save_to_file(solution_file_path);
+
+		break;
+	}
+	case Command::Invert: {
+		if (argc < 5) {
+			throw std::runtime_error(NOT_ENOUGH_ARGS);
+		}
+
+		auto parallel = string_to_parallel(argv[2]);
+		auto matrix_file_path = argv[3];
+		auto solution_file_path = argv[4];
+
+		auto solution =
+			Matrix<FLOAT_TYPE>::from_file(matrix_file_path).get_inverse();
 		solution.save_to_file(solution_file_path);
 
 		break;

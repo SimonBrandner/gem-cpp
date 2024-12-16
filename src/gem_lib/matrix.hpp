@@ -233,6 +233,18 @@ template <typename T> class Matrix {
 		}
 	}
 
+	Matrix<T> get_inverse() { return this->get_inverse(true); }
+
+	Matrix<T> get_inverse(bool parallel) {
+		if (this->number_of_rows != this->number_of_columns) {
+			throw std::runtime_error("Cannot invert a non-square matrix!");
+		}
+
+		return solve_system_of_equations(
+			*this, Matrix<T>::identity(this->number_of_rows)
+		);
+	}
+
 	const T &at(size_t row, size_t column) const {
 		return this->data[row * this->number_of_columns + column];
 	}
