@@ -22,7 +22,7 @@ constexpr char NOT_ENOUGH_ARGS[] = "Not enough arguments!";
 enum class Command { Generate, Solve, Complexity, Determinant };
 enum class ComplexityTask { SystemOfEquations, MatrixEquation, Determinant };
 enum class SystemMethod { Parallel, Sequential };
-enum class MatrixType { Random };
+enum class MatrixType { Random, Identity, Ones, Hilbert };
 
 Command string_to_command(const std::string &string_command) {
 	static const std::unordered_map<std::string, Command> command_map = {
@@ -86,6 +86,9 @@ DeterminantMethod string_to_determinant_method(const std::string &string_method
 MatrixType string_to_matrix_type(const std::string &string_type) {
 	static const std::unordered_map<std::string, MatrixType> type_map = {
 		{"random", MatrixType::Random},
+		{"ones", MatrixType::Ones},
+		{"identity", MatrixType::Identity},
+		{"hilbert", MatrixType::Hilbert},
 	};
 
 	auto it = type_map.find(string_type);
@@ -158,27 +161,59 @@ int main(int argc, char *argv[]) {
 		throw std::runtime_error(NOT_ENOUGH_ARGS);
 	}
 
-	Command command = string_to_command(argv[1]);
-
-	switch (command) {
+	switch (string_to_command(argv[1])) {
 	case Command::Generate: {
-		if (argc < 8) {
-			throw std::runtime_error(NOT_ENOUGH_ARGS);
-		}
-
-		MatrixType type = string_to_matrix_type(argv[2]);
-		size_t number_of_rows = std::stoi(argv[3]);
-		size_t number_of_columns = std::stoi(argv[4]);
-		FLOAT_TYPE min = std::stod(argv[5]);
-		FLOAT_TYPE max = std::stod(argv[6]);
-		std::string file_path = argv[7];
-
-		switch (type) {
+		switch (string_to_matrix_type(argv[2])) {
 		case MatrixType::Random: {
+			if (argc < 8) {
+				throw std::runtime_error(NOT_ENOUGH_ARGS);
+			}
+
+			size_t number_of_rows = std::stoi(argv[3]);
+			size_t number_of_columns = std::stoi(argv[4]);
+			FLOAT_TYPE min = std::stod(argv[5]);
+			FLOAT_TYPE max = std::stod(argv[6]);
+			std::string file_path = argv[7];
+
 			Matrix<FLOAT_TYPE>::random(
 				number_of_rows, number_of_columns, min, max
 			)
 				.save_to_file(file_path);
+			break;
+		}
+		case MatrixType::Ones: {
+			if (argc < 6) {
+				throw std::runtime_error(NOT_ENOUGH_ARGS);
+			}
+
+			size_t number_of_rows = std::stoi(argv[3]);
+			size_t number_of_columns = std::stoi(argv[4]);
+			std::string file_path = argv[5];
+
+			Matrix<FLOAT_TYPE>::ones(number_of_rows, number_of_columns)
+				.save_to_file(file_path);
+			break;
+		}
+		case MatrixType::Identity: {
+			if (argc < 5) {
+				throw std::runtime_error(NOT_ENOUGH_ARGS);
+			}
+
+			size_t size = std::stoi(argv[3]);
+			std::string file_path = argv[4];
+
+			Matrix<FLOAT_TYPE>::identity(size).save_to_file(file_path);
+			break;
+		}
+		case MatrixType::Hilbert: {
+			if (argc < 5) {
+				throw std::runtime_error(NOT_ENOUGH_ARGS);
+			}
+
+			size_t size = std::stoi(argv[3]);
+			std::string file_path = argv[4];
+
+			Matrix<FLOAT_TYPE>::hilbert(size).save_to_file(file_path);
 			break;
 		}
 		}

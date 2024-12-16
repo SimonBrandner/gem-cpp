@@ -106,6 +106,34 @@ template <typename T> class Matrix {
 		return Matrix<T>(data, number_of_rows, number_of_columns);
 	}
 
+	static Matrix<T> identity(const size_t size) {
+		std::vector<T> data(size * size, 0);
+		for (size_t i = 0; i < size; ++i) {
+			data[i * size + i] = 1;
+		}
+		return Matrix<T>(data, size, size);
+	}
+
+	static Matrix<T> ones(const size_t size) {
+		return Matrix::random(size, size);
+	}
+
+	static Matrix<T>
+	ones(const size_t number_of_rows, const size_t number_of_columns) {
+		std::vector<T> data(number_of_rows * number_of_columns, 1);
+		return Matrix<T>(data, number_of_rows, number_of_columns);
+	}
+
+	static Matrix<T> hilbert(const size_t size) {
+		std::vector<T> data(size * size);
+		for (int row = 0; row < size; ++row) {
+			for (int column = 0; column < size; ++column) {
+				data[row * size + column] = 1.0 / (row + column + 1.0);
+			}
+		}
+		return Matrix<T>(data, size, size);
+	}
+
 	static Matrix<T> from_file(std::string file_path) {
 		std::ifstream file(file_path);
 
