@@ -30,4 +30,14 @@ Matrix<T> solve_system_of_equations(Matrix<T> map, Matrix<T> right_side) {
 	return solve_system_of_equations(map, right_side, true);
 }
 
+template <typename T>
+double get_residue(Matrix<T> map, Matrix<T> right_side, Matrix<T> solution) {
+	return abs(right_side - map * solution);
+}
+
+template <typename T>
+double get_error(Matrix<T> exact_solution, Matrix<T> computed_solution) {
+	return abs(exact_solution - computed_solution);
+}
+
 #endif
