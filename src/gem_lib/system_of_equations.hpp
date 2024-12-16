@@ -1,5 +1,6 @@
 #include "eliminable_matrix.hpp"
 #include "matrix.hpp"
+
 #include <stdexcept>
 
 #ifndef SYSTEM_OF_EQUATIONS_H
