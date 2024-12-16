@@ -1,6 +1,7 @@
 #include "./permutations.hpp"
 
 #include <cmath>
+#include <fstream>
 #include <iostream>
 #include <ostream>
 #include <random>
@@ -174,6 +175,25 @@ template <typename T> class Matrix {
 
 	const T &at(size_t row, size_t column) const {
 		return this->data[row * this->number_of_columns + column];
+	}
+
+	void save_to_file(std::string path) const {
+		std::ofstream file(path);
+
+		for (size_t row = 0; row < this->number_of_rows; ++row) {
+			for (size_t column = 0; column < this->number_of_columns;
+				 ++column) {
+				file << this->at(row, column);
+				if (column < this->number_of_columns - 1) {
+					file << " ";
+				}
+			}
+			if (row < this->number_of_rows - 1) {
+				file << std::endl;
+			}
+		}
+
+		file.close();
 	}
 
 	const Matrix<T> operator*(const Matrix<T> &rhs) const {

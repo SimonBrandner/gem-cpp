@@ -17,10 +17,12 @@
 
 constexpr double MIN = 100;
 constexpr double MAX = -100;
+constexpr char NOT_ENOUGH_ARGS[] = "Not enough arguments!";
 
 enum class Command { Generate, Solve, Complexity, Determinant };
 enum class ComplexityTask { SystemOfEquations, MatrixEquation, Determinant };
 enum class SystemMethod { Parallel, Sequential };
+enum class MatrixType { Random };
 
 Command string_to_command(const std::string &string_command) {
 	static const std::unordered_map<std::string, Command> command_map = {
@@ -79,6 +81,18 @@ DeterminantMethod string_to_determinant_method(const std::string &string_method
 	throw std::runtime_error(
 		"Unknown method for solving systems: " + string_method
 	);
+}
+
+MatrixType string_to_matrix_type(const std::string &string_type) {
+	static const std::unordered_map<std::string, MatrixType> type_map = {
+		{"random", MatrixType::Random},
+	};
+
+	auto it = type_map.find(string_type);
+	if (it != type_map.end()) {
+		return it->second;
+	}
+	throw std::runtime_error("Unknown matrix type: " + string_type);
 }
 
 void solve_random_system(size_t size, bool parallel) {
@@ -141,13 +155,34 @@ void handle_complexity_task(
 
 int main(int argc, char *argv[]) {
 	if (argc < 2) {
-		throw std::runtime_error("No args provided!");
+		throw std::runtime_error(NOT_ENOUGH_ARGS);
 	}
 
 	Command command = string_to_command(argv[1]);
 
 	switch (command) {
 	case Command::Generate: {
+		if (argc < 8) {
+			throw std::runtime_error(NOT_ENOUGH_ARGS);
+		}
+
+		MatrixType type = string_to_matrix_type(argv[2]);
+		size_t number_of_columns = std::stoi(argv[3]);
+		size_t number_of_rows = std::stoi(argv[4]);
+		FLOAT_TYPE min = std::stod(argv[5]);
+		FLOAT_TYPE max = std::stod(argv[6]);
+		std::string file_path = argv[7];
+
+		switch (type) {
+		case MatrixType::Random: {
+			Matrix<FLOAT_TYPE>::random(
+				number_of_rows, number_of_columns, min, max
+			)
+				.save_to_file(file_path);
+			break;
+		}
+		}
+
 		break;
 	}
 	case Command::Solve: {
@@ -158,7 +193,7 @@ int main(int argc, char *argv[]) {
 	}
 	case Command::Complexity: {
 		if (argc < 7) {
-			throw std::runtime_error("Not enough arguments!");
+			throw std::runtime_error(NOT_ENOUGH_ARGS);
 		}
 
 		ComplexityTask task = string_to_complexity_task(argv[2]);
