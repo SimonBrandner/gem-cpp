@@ -1,8 +1,6 @@
 #include "matrix.hpp"
 
-#include <algorithm>
 #include <cstddef>
-#include <execution>
 #include <functional>
 #include <numeric>
 #include <optional>
