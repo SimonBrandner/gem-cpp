@@ -92,6 +92,20 @@ template <typename T> class Matrix {
 		return Matrix::random(size, size, min, max);
 	}
 
+	static Matrix<T>
+	random(size_t number_of_rows, size_t number_of_columns, T min, T max) {
+		std::random_device rd;
+		std::mt19937 gen(rd());
+
+		std::vector<T> data(number_of_rows * number_of_columns);
+		for (size_t i = 0; i < data.size(); ++i) {
+			std::uniform_real_distribution<T> dist(min, max);
+			data[i] = dist(gen);
+		}
+
+		return Matrix<T>(data, number_of_rows, number_of_columns);
+	}
+
 	static Matrix<T> from_file(std::string file_path) {
 		std::ifstream file(file_path);
 
@@ -120,20 +134,6 @@ template <typename T> class Matrix {
 		}
 
 		file.close();
-		return Matrix<T>(data, number_of_rows, number_of_columns);
-	}
-
-	static Matrix<T>
-	random(size_t number_of_rows, size_t number_of_columns, T min, T max) {
-		std::random_device rd;
-		std::mt19937 gen(rd());
-
-		std::vector<T> data(number_of_rows * number_of_columns);
-		for (size_t i = 0; i < data.size(); ++i) {
-			std::uniform_real_distribution<T> dist(min, max);
-			data[i] = dist(gen);
-		}
-
 		return Matrix<T>(data, number_of_rows, number_of_columns);
 	}
 

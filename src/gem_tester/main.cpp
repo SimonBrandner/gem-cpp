@@ -167,8 +167,8 @@ int main(int argc, char *argv[]) {
 		}
 
 		MatrixType type = string_to_matrix_type(argv[2]);
-		size_t number_of_columns = std::stoi(argv[3]);
-		size_t number_of_rows = std::stoi(argv[4]);
+		size_t number_of_rows = std::stoi(argv[3]);
+		size_t number_of_columns = std::stoi(argv[4]);
 		FLOAT_TYPE min = std::stod(argv[5]);
 		FLOAT_TYPE max = std::stod(argv[6]);
 		std::string file_path = argv[7];
@@ -186,6 +186,20 @@ int main(int argc, char *argv[]) {
 		break;
 	}
 	case Command::Solve: {
+		if (argc < 6) {
+			throw std::runtime_error(NOT_ENOUGH_ARGS);
+		}
+
+		auto parallel = string_to_parallel(argv[2]);
+		auto map_file_path = argv[3];
+		auto right_side_file_path = argv[4];
+		auto solution_file_path = argv[5];
+
+		auto map = Matrix<FLOAT_TYPE>::from_file(map_file_path);
+		auto right_side = Matrix<FLOAT_TYPE>::from_file(right_side_file_path);
+		auto solution = solve_system_of_equations(map, right_side, parallel);
+		solution.save_to_file(solution_file_path);
+
 		break;
 	}
 	case Command::Determinant: {
@@ -195,6 +209,7 @@ int main(int argc, char *argv[]) {
 
 		auto method = string_to_determinant_method(argv[2]);
 		auto file_path = argv[3];
+
 		auto matrix = Matrix<FLOAT_TYPE>::from_file(file_path);
 		auto determinant = matrix.get_determinant(method);
 
