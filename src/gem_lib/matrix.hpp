@@ -7,6 +7,7 @@
 #include <random>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #ifndef MATRIX_H
@@ -89,6 +90,37 @@ template <typename T> class Matrix {
 	public:
 	static Matrix<T> random(size_t size, T min, T max) {
 		return Matrix::random(size, size, min, max);
+	}
+
+	static Matrix<T> from_file(std::string file_path) {
+		std::ifstream file(file_path);
+
+		std::vector<T> data;
+		size_t number_of_rows = 0;
+		size_t number_of_columns = 0;
+
+		std::string line;
+		while (std::getline(file, line)) {
+			std::stringstream line_stream(line);
+
+			size_t row_length = 0;
+			T value;
+			while (line_stream >> value) {
+				data.push_back(value);
+				++row_length;
+			}
+
+			if (number_of_columns != 0 && number_of_columns != row_length) {
+				throw std::runtime_error(
+					"Row length do not match in matrix file!"
+				);
+			}
+			number_of_columns = row_length;
+			++number_of_rows;
+		}
+
+		file.close();
+		return Matrix<T>(data, number_of_rows, number_of_columns);
 	}
 
 	static Matrix<T>

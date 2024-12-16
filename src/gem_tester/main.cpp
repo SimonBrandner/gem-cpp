@@ -189,6 +189,16 @@ int main(int argc, char *argv[]) {
 		break;
 	}
 	case Command::Determinant: {
+		if (argc < 4) {
+			throw std::runtime_error(NOT_ENOUGH_ARGS);
+		}
+
+		auto method = string_to_determinant_method(argv[2]);
+		auto file_path = argv[3];
+		auto matrix = Matrix<FLOAT_TYPE>::from_file(file_path);
+		auto determinant = matrix.get_determinant(method);
+
+		std::cout << "Determinant: " << determinant << std::endl;
 		break;
 	}
 	case Command::Complexity: {
