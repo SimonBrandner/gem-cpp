@@ -31,12 +31,14 @@ Matrix<T> solve_system_of_equations(Matrix<T> map, Matrix<T> right_side) {
 }
 
 template <typename T>
-double get_residue(Matrix<T> map, Matrix<T> right_side, Matrix<T> solution) {
-	return abs(right_side - map * solution);
+T get_residue(
+	Matrix<T> &map, Matrix<T> &right_side, Matrix<T> &computed_solution
+) {
+	return abs(right_side - map * computed_solution);
 }
 
 template <typename T>
-double get_error(Matrix<T> exact_solution, Matrix<T> computed_solution) {
+T get_error(Matrix<T> &exact_solution, Matrix<T> &computed_solution) {
 	return abs(exact_solution - computed_solution);
 }
 
