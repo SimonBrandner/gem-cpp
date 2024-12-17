@@ -99,27 +99,77 @@ MatrixType string_to_matrix_type(const std::string &string_type) {
 	throw std::runtime_error("Unknown matrix type: " + string_type);
 }
 
-void solve_random_system(size_t size, bool parallel) {
-	solve_system_of_equations(
-		Matrix<FLOAT_TYPE>::random(size, MIN, MAX),
-		Matrix<FLOAT_TYPE>::random(size, 1, MIN, MAX)
-	);
+Matrix<FLOAT_TYPE> get_matrix_of_type(MatrixType matrix_type, size_t size) {
+	switch (matrix_type) {
+	case MatrixType::Random: {
+		return Matrix<FLOAT_TYPE>::random(size, MIN, MAX);
+	}
+	case MatrixType::Hilbert: {
+		return Matrix<FLOAT_TYPE>::hilbert(size);
+	}
+	default: {
+		throw std::runtime_error("We do not support getting this matrix type");
+	}
+	}
 }
 
-void solve_random_matrix_equation(size_t size, bool parallel) {
-	solve_system_of_equations(
-		Matrix<FLOAT_TYPE>::random(size, MIN, MAX),
-		Matrix<FLOAT_TYPE>::random(size, MIN, MAX)
-	);
+Matrix<FLOAT_TYPE> get_solution_for_matrix_type(
+	MatrixType matrix_type, size_t number_of_rows, size_t number_of_columns
+) {
+	switch (matrix_type) {
+	case MatrixType::Random: {
+		return Matrix<FLOAT_TYPE>::random(
+			number_of_rows, number_of_columns, MIN, MAX
+		);
+	}
+	case MatrixType::Hilbert: {
+		return Matrix<FLOAT_TYPE>::ones(number_of_rows, number_of_columns);
+	}
+	default: {
+		throw std::runtime_error("We do not support getting this matrix type");
+	}
+	}
 }
 
-void compute_random_determinant(size_t size, DeterminantMethod method) {
-	auto matrix = Matrix<FLOAT_TYPE>::random(size, MIN, MAX);
-	matrix.get_determinant(method);
+Matrix<FLOAT_TYPE>
+get_solution_for_matrix_type(MatrixType matrix_type, size_t size) {
+	return get_solution_for_matrix_type(matrix_type, size);
+}
+
+void solve_system(MatrixType matrix_type, size_t size, bool parallel) {
+	auto map = get_matrix_of_type(matrix_type, size);
+	auto expected_solution = get_solution_for_matrix_type(matrix_type, size, 1);
+	auto right_side = map * expected_solution;
+
+	auto computed_solution = solve_system_of_equations(map, right_side);
+
+	auto residue = get_residue(map, right_side, computed_solution);
+	auto error = get_error(expected_solution, computed_solution);
+
+	std::cout << residue << ", " << error << ", ";
+}
+
+void solve_matrix_equation(MatrixType matrix_type, size_t size, bool parallel) {
+	auto map = get_matrix_of_type(matrix_type, size);
+	auto expected_solution = get_solution_for_matrix_type(matrix_type, size);
+	auto right_side = map * expected_solution;
+
+	auto computed_solution = solve_system_of_equations(map, right_side);
+	auto residue = get_residue(map, right_side, computed_solution);
+	auto error = get_error(expected_solution, computed_solution);
+
+	std::cout << residue << ", " << error << ", ";
+}
+
+void compute_determinant(
+	MatrixType matrix_type, size_t size, DeterminantMethod method
+) {
+	get_matrix_of_type(matrix_type, size).get_determinant(method);
 }
 
 void handle_complexity_task(
 	ComplexityTask task,
+	MatrixType matrix_type,
 	const std::string &method,
 	const size_t start_size,
 	const size_t step_size,
@@ -128,31 +178,34 @@ void handle_complexity_task(
 	std::function<void(size_t)> task_function;
 	switch (task) {
 	case ComplexityTask::SystemOfEquations: {
-		task_function = [method](size_t i) {
-			solve_random_system(i, string_to_parallel(method));
+		task_function = [method, matrix_type](size_t i) {
+			solve_system(matrix_type, i, string_to_parallel(method));
 		};
 		break;
 	}
 	case ComplexityTask::MatrixEquation: {
-		task_function = [method](size_t i) {
-			solve_random_matrix_equation(i, string_to_parallel(method));
+		task_function = [method, matrix_type](size_t i) {
+			solve_matrix_equation(matrix_type, i, string_to_parallel(method));
 		};
 		break;
 	}
 	case ComplexityTask::Determinant: {
-		task_function = [method](size_t i) {
-			compute_random_determinant(i, string_to_determinant_method(method));
+		task_function = [method, matrix_type](size_t i) {
+			compute_determinant(
+				matrix_type, i, string_to_determinant_method(method)
+			);
 		};
 		break;
 	}
 	}
 
 	for (size_t i = start_size; i < stop_size; i += step_size) {
+		std::cout << "(" << i << ", ";
 		auto start = std::chrono::high_resolution_clock::now();
 		task_function(i);
 		std::chrono::duration<double> elapsed =
 			std::chrono::high_resolution_clock::now() - start;
-		std::cout << "(" << i << ", " << elapsed.count() << ")"
+		std::cout << elapsed.count() << ")"
 				  << "," << std::endl;
 	}
 }
@@ -268,17 +321,20 @@ int main(int argc, char *argv[]) {
 		break;
 	}
 	case Command::Complexity: {
-		if (argc < 7) {
+		if (argc < 8) {
 			throw std::runtime_error(NOT_ENOUGH_ARGS);
 		}
 
 		ComplexityTask task = string_to_complexity_task(argv[2]);
-		std::string method = argv[3];
-		size_t start_size = std::stoi(argv[4]);
-		size_t step_size = std::stoi(argv[5]);
-		size_t stop_size = std::stoi(argv[6]);
+		MatrixType matrix_type = string_to_matrix_type(argv[3]);
+		std::string method = argv[4];
+		size_t start_size = std::stoi(argv[5]);
+		size_t step_size = std::stoi(argv[6]);
+		size_t stop_size = std::stoi(argv[7]);
 
-		handle_complexity_task(task, method, start_size, step_size, stop_size);
+		handle_complexity_task(
+			task, matrix_type, method, start_size, step_size, stop_size
+		);
 		break;
 	}
 	}
