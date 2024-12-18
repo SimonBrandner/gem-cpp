@@ -141,7 +141,8 @@ void solve_system(MatrixType matrix_type, size_t size, bool parallel) {
 	auto expected_solution = get_solution_for_matrix_type(matrix_type, size, 1);
 	auto right_side = map * expected_solution;
 
-	auto computed_solution = solve_system_of_equations(map, right_side);
+	auto computed_solution =
+		solve_system_of_equations(map, right_side, parallel);
 
 	auto residue = get_residue(map, right_side, computed_solution);
 	auto error = get_error(expected_solution, computed_solution);
@@ -154,7 +155,8 @@ void solve_matrix_equation(MatrixType matrix_type, size_t size, bool parallel) {
 	auto expected_solution = get_solution_for_matrix_type(matrix_type, size);
 	auto right_side = map * expected_solution;
 
-	auto computed_solution = solve_system_of_equations(map, right_side);
+	auto computed_solution =
+		solve_system_of_equations(map, right_side, parallel);
 	auto residue = get_residue(map, right_side, computed_solution);
 	auto error = get_error(expected_solution, computed_solution);
 
