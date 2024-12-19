@@ -202,13 +202,12 @@ void handle_complexity_task(
 	}
 
 	for (size_t i = start_size; i < stop_size; i += step_size) {
-		std::cout << "(" << i << ", ";
+		std::cout << i << ", ";
 		auto start = std::chrono::high_resolution_clock::now();
 		task_function(i);
 		std::chrono::duration<double> elapsed =
 			std::chrono::high_resolution_clock::now() - start;
-		std::cout << elapsed.count() << ")"
-				  << "," << std::endl;
+		std::cout << elapsed.count() << std::endl;
 	}
 }
 
