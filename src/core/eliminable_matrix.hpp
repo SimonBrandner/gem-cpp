@@ -170,7 +170,7 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 								 ? this->number_of_rows
 								 : start_row + chunk_size;
 			threads.emplace_back(
-				this {
+				[this](size_t start_row, size_t end_row) {
 					for (size_t row = start_row; row < end_row; ++row) {
 						if (this->at(row, row) != 0) {
 							this->multiply_row(row, 1. / this->at(row, row));
