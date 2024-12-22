@@ -19,13 +19,14 @@ constexpr double MIN = 100;
 constexpr double MAX = -100;
 constexpr char NOT_ENOUGH_ARGS[] = "Not enough arguments!";
 
-enum class Command { Generate, Solve, Invert, Complexity, Determinant };
+enum class Command { Help, Generate, Solve, Invert, Complexity, Determinant };
 enum class ComplexityTask { SystemOfEquations, MatrixEquation, Determinant };
 enum class SystemMethod { Parallel, Sequential };
 enum class MatrixType { Random, Identity, Ones, Hilbert };
 
 Command string_to_command(const std::string &string_command) {
 	static const std::unordered_map<std::string, Command> command_map = {
+		{"--help", Command::Help},
 		{"generate", Command::Generate},
 		{"solve", Command::Solve},
 		{"invert", Command::Invert},
@@ -217,6 +218,13 @@ int main(int argc, char *argv[]) {
 	}
 
 	switch (string_to_command(argv[1])) {
+	case Command::Help: {
+		std::cout << "See "
+					 "https://github.com/SimonBrandner/gem-cpp/blob/main/"
+					 "README.md for instructions on how to use this."
+				  << std::endl;
+		break;
+	}
 	case Command::Generate: {
 		switch (string_to_matrix_type(argv[2])) {
 		case MatrixType::Random: {
