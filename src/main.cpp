@@ -1,5 +1,5 @@
-#include "../gem_lib/matrix.hpp"
-#include "../gem_lib/system_of_equations.hpp"
+#include "./core/matrix.hpp"
+#include "./core/system_of_equations.hpp"
 
 #include <chrono>
 #include <functional>
