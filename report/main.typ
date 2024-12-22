@@ -10,7 +10,7 @@
     ),
   ),
   abstract: [This semestral work demonstrates a C++ implementation of Gaussian elimination. We show how it can be used for various tasks like solving systems of linear equations, matrix equations, computing determinants, computing inverses etc. We also implement a parallelized version of this algorithm leveraging the concurrency features of C++ and show how it performs compared to the regular version. Lastly, we give an example of the algorithm's shortcomings.],
-  date: "January 1, 2024",
+  date: "December 22, 2024",
 )
 
 = Introduction
