@@ -1,0 +1,24 @@
+introduction-to-numerical-analysis:
+  type: Book
+  title: Introduction to Numerical Analysis
+  date: 2002
+  publisher: Springer
+  serial-number:
+    isbn: 0-387-95452-X
+  author:
+    - J. Stoer
+    - R. Bulirsch
+
+numerical-computing-with-matlab:
+  type: Book
+  title: Numerical Computing with MATLAB
+  date: 2004
+  author: Cleve Moler
+  url: https://www.mathworks.com/moler/chapters.html
+
+akla:
+  type: Book
+  title: Abstraktní a konkrétní lineární algebra
+  date: 2023
+  url: https://math.fel.cvut.cz/en/people/velebil/akla.html
+  author: Jiří Velebil
