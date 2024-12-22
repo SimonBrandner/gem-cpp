@@ -2,6 +2,10 @@
 
 A semestral work demonstrating an implementation of Gaussian elimination in C++.
 
+## Report
+
+The report can be found in [report/report.pdf](./report/report.pdf)
+
 ## Requirements
 
 - C++ compiler (e.g., `clang++``)
