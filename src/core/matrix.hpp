@@ -32,10 +32,12 @@ template <typename T> class Matrix {
 	);
 
 	private:
+	// Convert the matrix to an eliminable matrix for Gaussian elimination
 	EliminableMatrix<T> get_eliminable() const {
 		return EliminableMatrix<T>(*this);
 	}
 
+	// Join two matrices horizontally
 	Matrix<T> right_join(const Matrix<T> &rhs) const {
 		if (this->number_of_rows != rhs.get_number_of_rows()) {
 			throw std::runtime_error("The number of rows does not match!");
@@ -65,11 +67,13 @@ template <typename T> class Matrix {
 		);
 	}
 
-	Matrix<T> extract_column_range(size_t start) {
+	// Extract a range of columns from the matrix
+	Matrix<T> extract_column_range(size_t start) const {
 		return this->extract_column_range(start, this->number_of_columns);
 	}
 
-	Matrix<T> extract_column_range(size_t start, size_t end) {
+	// Extract a range of columns from the matrix with specified end
+	Matrix<T> extract_column_range(size_t start, size_t end) const {
 		std::vector<T> extracted_data;
 		extracted_data.reserve((end - start) * this->get_number_of_rows());
 
@@ -88,24 +92,27 @@ template <typename T> class Matrix {
 	std::vector<T> data;
 
 	public:
+	// Generate a random matrix with specified size and value range
 	static Matrix<T> random(size_t size, T min, T max) {
 		return Matrix::random(size, size, min, max);
 	}
 
+	// Generate a random matrix with specified dimensions and value range
 	static Matrix<T>
 	random(size_t number_of_rows, size_t number_of_columns, T min, T max) {
 		std::random_device rd;
 		std::mt19937 gen(rd());
 
 		std::vector<T> data(number_of_rows * number_of_columns);
+		std::uniform_real_distribution<T> dist(min, max);
 		for (size_t i = 0; i < data.size(); ++i) {
-			std::uniform_real_distribution<T> dist(min, max);
 			data[i] = dist(gen);
 		}
 
 		return Matrix<T>(data, number_of_rows, number_of_columns);
 	}
 
+	// Generate an identity matrix of specified size
 	static Matrix<T> identity(const size_t size) {
 		std::vector<T> data(size * size, 0);
 		for (size_t i = 0; i < size; ++i) {
@@ -114,16 +121,19 @@ template <typename T> class Matrix {
 		return Matrix<T>(data, size, size);
 	}
 
+	// Generate a matrix filled with ones of specified size
 	static Matrix<T> ones(const size_t size) {
-		return Matrix::random(size, size);
+		return Matrix::ones(size, size);
 	}
 
+	// Generate a matrix filled with ones with specified dimensions
 	static Matrix<T>
 	ones(const size_t number_of_rows, const size_t number_of_columns) {
 		std::vector<T> data(number_of_rows * number_of_columns, 1);
 		return Matrix<T>(data, number_of_rows, number_of_columns);
 	}
 
+	// Generate a Hilbert matrix of specified size
 	static Matrix<T> hilbert(const size_t size) {
 		std::vector<T> data(size * size);
 		for (int row = 0; row < size; ++row) {
@@ -134,7 +144,8 @@ template <typename T> class Matrix {
 		return Matrix<T>(data, size, size);
 	}
 
-	static Matrix<T> from_file(std::string file_path) {
+	// Load a matrix from a file
+	static Matrix<T> from_file(const std::string &file_path) {
 		std::ifstream file(file_path);
 
 		std::vector<T> data;
@@ -154,7 +165,7 @@ template <typename T> class Matrix {
 
 			if (number_of_columns != 0 && number_of_columns != row_length) {
 				throw std::runtime_error(
-					"Row length do not match in matrix file!"
+					"Row lengths do not match in matrix file!"
 				);
 			}
 			number_of_columns = row_length;
@@ -165,6 +176,7 @@ template <typename T> class Matrix {
 		return Matrix<T>(data, number_of_rows, number_of_columns);
 	}
 
+	// Constructor for the Matrix class
 	Matrix(
 		std::vector<T> data, size_t number_of_rows, size_t number_of_columns
 	) {
@@ -179,12 +191,15 @@ template <typename T> class Matrix {
 		this->number_of_columns = number_of_columns;
 	}
 
+	// Get the number of rows in the matrix
 	const size_t get_number_of_rows() const { return this->number_of_rows; }
 
+	// Get the number of columns in the matrix
 	const size_t get_number_of_columns() const {
 		return this->number_of_columns;
 	}
 
+	// Calculate the product of the diagonal elements
 	const double get_diagonal_product() const {
 		double product = 1;
 		for (size_t position = 0; position < this->get_number_of_rows();
@@ -194,11 +209,9 @@ template <typename T> class Matrix {
 		return product;
 	}
 
-	const double get_determinant() const {
-		this->get_determinant(DeterminantMethod::ParallelElimination);
-	}
-
-	const double get_determinant(DeterminantMethod method) const {
+	const double get_determinant(
+		DeterminantMethod method = DeterminantMethod::ParallelElimination
+	) const {
 		if (this->number_of_rows != this->number_of_columns) {
 			throw std::runtime_error(
 				"Cannot compute determinant of a non-square matrix!"
@@ -211,7 +224,7 @@ template <typename T> class Matrix {
 				generate_permutations(this->number_of_rows);
 
 			double determinant = 0;
-			for (auto &permutation : permutations) {
+			for (const auto &permutation : permutations) {
 				double product = permutation.second;
 				for (size_t i = 0; i < this->number_of_rows; ++i) {
 					product *= this->at(i, permutation.first[i]);
@@ -230,18 +243,18 @@ template <typename T> class Matrix {
 			eliminable_matrix.perform_gem(true);
 			return eliminable_matrix.get_diagonal_product();
 		}
+		default:
+			throw std::runtime_error("Unknown determinant method!");
 		}
 	}
 
-	Matrix<T> get_inverse() { return this->get_inverse(true); }
-
-	Matrix<T> get_inverse(bool parallel) {
+	Matrix<T> get_inverse(bool parallel = true) const {
 		if (this->number_of_rows != this->number_of_columns) {
 			throw std::runtime_error("Cannot invert a non-square matrix!");
 		}
 
 		return solve_system_of_equations(
-			*this, Matrix<T>::identity(this->number_of_rows)
+			*this, Matrix<T>::identity(this->number_of_rows), parallel
 		);
 	}
 
@@ -249,7 +262,7 @@ template <typename T> class Matrix {
 		return this->data[row * this->number_of_columns + column];
 	}
 
-	void save_to_file(std::string path) const {
+	void save_to_file(const std::string &path) const {
 		std::ofstream file(path);
 
 		for (size_t row = 0; row < this->number_of_rows; ++row) {

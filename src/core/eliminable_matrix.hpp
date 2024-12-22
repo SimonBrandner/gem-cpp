@@ -6,6 +6,7 @@
 #include <optional>
 #include <stdexcept>
 #include <thread>
+#include <vector>
 
 #ifndef ELIMINABLE_MATRIX_H
 #define ELIMINABLE_MATRIX_H
@@ -19,33 +20,35 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 	solve_system_of_equations<T>(Matrix<T> map, Matrix<T> right_side);
 
 	private:
-	std::vector<size_t> row_order;
+	std::vector<size_t> row_order; // Keeps track of the row order for pivoting
 
+	// Swaps two rows in the row_order vector
 	void swap_rows(size_t row_a_index, size_t row_b_index) {
-		auto tmp = this->row_order[row_a_index];
-		this->row_order[row_a_index] = this->row_order[row_b_index];
-		this->row_order[row_b_index] = tmp;
+		std::swap(this->row_order[row_a_index], this->row_order[row_b_index]);
 	}
 
+	// Adds a multiple of one row to another row
 	void add_row_multiple(size_t source, size_t target, T multiplicator) {
 		for (size_t i = 0; i < this->number_of_columns; ++i) {
-			this->at(target, i) =
-				this->at(target, i) + multiplicator * this->at(source, i);
+			this->at(target, i) += multiplicator * this->at(source, i);
 		}
 	}
 
+	// Multiplies a row by a given multiplicator
 	void multiply_row(size_t row, T multiplicator) {
 		for (size_t i = 0; i < this->number_of_columns; ++i) {
 			this->at(row, i) *= multiplicator;
 		}
 	}
 
+	// Eliminates a row using another row based on a specific column
 	void eliminate_row(size_t row, size_t by, size_t column) {
 		this->add_row_multiple(
 			by, row, -this->at(row, column) / this->at(by, column)
 		);
 	}
 
+	// Eliminates multiple rows sequentially
 	void eliminate_rows(
 		size_t by_row, size_t based_on_column, size_t start_row, size_t end_row
 	) {
@@ -54,6 +57,7 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 		}
 	}
 
+	// Eliminates multiple rows in parallel using multiple threads
 	void eliminate_rows_in_parallel(
 		size_t by_row, size_t based_on_column, size_t start_row, size_t end_row
 	) {
@@ -67,7 +71,7 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 		for (size_t thread_index = 0; thread_index < number_of_threads;
 			 ++thread_index) {
 			size_t chunk_start_row = start_row + thread_index * chunk_size;
-			// Make sure we do not walk out out of the matrix
+			// Ensure we do not exceed matrix bounds
 			size_t chunk_end_row = (thread_index == number_of_threads - 1)
 									   ? end_row
 									   : chunk_start_row + chunk_size;
@@ -86,18 +90,15 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 		}
 	}
 
+	// Pivots the matrix to bring the highest value in the column to the
+	// diagonal
 	void pivot(size_t column) {
 		std::optional<std::pair<size_t, T>> row_with_highest_value;
 		for (size_t row = column; row < this->number_of_rows; ++row) {
 			auto val = std::abs(this->at(row, column));
-			if (!row_with_highest_value.has_value()) {
-				row_with_highest_value =
-					std::make_optional(std::make_pair(row, val));
-				continue;
-			}
-			if (val > row_with_highest_value.value().second) {
-				row_with_highest_value.value().first = row;
-				row_with_highest_value.value().second = val;
+			if (!row_with_highest_value.has_value() ||
+				val > row_with_highest_value->second) {
+				row_with_highest_value = std::make_pair(row, val);
 			}
 		}
 
@@ -105,7 +106,7 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 			throw std::runtime_error("No pivot!");
 		}
 
-		this->swap_rows(column, row_with_highest_value.value().first);
+		this->swap_rows(column, row_with_highest_value->first);
 	}
 
 	EliminableMatrix<T>(const Matrix<T> &matrix) : Matrix<T>(matrix) {
@@ -113,9 +114,8 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 		std::iota(this->row_order.begin(), this->row_order.end(), 0);
 	}
 
-	void perform_gem() { this->perform_gem(true); }
-
-	void perform_gem(bool parallel) {
+	// Performs Gaussian Elimination Method (GEM) on the matrix
+	void perform_gem(bool parallel = true) {
 		for (size_t column = 0; column < this->number_of_rows; ++column) {
 			this->pivot(column);
 			if (this->at(column, column) != 0) {
@@ -132,9 +132,8 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 		}
 	}
 
-	void perform_jem() { this->perform_jem(true); }
-
-	void perform_jem(bool parallel) {
+	// Performs Jordan Elimination Method (JEM) on the matrix
+	void perform_jem(bool parallel = true) {
 		for (size_t row = 1; row < this->number_of_rows; ++row) {
 			if (this->at(row, row) != 0) {
 				if (parallel) {
@@ -146,11 +145,8 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 		}
 	}
 
-	void normalize_rows_based_on_diagonal() {
-		this->normalize_rows_based_on_diagonal();
-	}
-
-	void normalize_rows_based_on_diagonal(bool parallel) {
+	// Normalizes rows based on the diagonal elements
+	void normalize_rows_based_on_diagonal(bool parallel = true) {
 		if (!parallel) {
 			for (size_t row = 0; row < this->number_of_rows; ++row) {
 				if (this->at(row, row) != 0) {
@@ -169,12 +165,12 @@ template <typename T> class EliminableMatrix : public Matrix<T> {
 		for (size_t thread_index = 0; thread_index < number_of_threads;
 			 ++thread_index) {
 			size_t start_row = thread_index * chunk_size;
-			// Make sure we do not walk out out of the matrix
+			// Ensure we do not exceed matrix bounds
 			size_t end_row = (thread_index == number_of_threads - 1)
 								 ? this->number_of_rows
 								 : start_row + chunk_size;
 			threads.emplace_back(
-				[this](size_t start_row, size_t end_row) {
+				this {
 					for (size_t row = start_row; row < end_row; ++row) {
 						if (this->at(row, row) != 0) {
 							this->multiply_row(row, 1. / this->at(row, row));
